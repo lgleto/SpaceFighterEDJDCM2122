@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.media.MediaPlayer
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.SurfaceHolder
@@ -20,7 +21,9 @@ class GameView : SurfaceView, Runnable {
     lateinit var paint : Paint
 
     lateinit var player : Player
+    lateinit var boom : Boom
     var stars = arrayListOf<Star>()
+    var enemies = arrayListOf<Enemy>()
 
     constructor(context: Context?,
                 screenWidth : Int,
@@ -45,10 +48,14 @@ class GameView : SurfaceView, Runnable {
              screenHeight: Int = 0){
         surfaceHolder = holder
         player = Player(context!!, screenWidth, screenHeight)
+        boom = Boom(context!!, screenWidth, screenHeight)
         paint = Paint()
 
         for(index in 0..99){
             stars.add(Star(screenWidth,screenHeight))
+        }
+        for(index in 0..2){
+            enemies.add(Enemy(context, screenWidth,screenHeight))
         }
     }
 
@@ -73,9 +80,24 @@ class GameView : SurfaceView, Runnable {
     }
 
     fun update(){
+        boom.x = -250f
+        boom.y = -250f
+
         player.update()
         for( s in stars){
             s.update(player.speed)
+        }
+        for( e in enemies){
+            e.update(player.speed)
+            if (e.detectColosion.intersect(player.detectColosion)){
+
+                boom.x = e.x
+                boom.y = e.y
+                e.x = - 300f
+                var boomSound = MediaPlayer.create(context, R.raw.boom)
+                boomSound!!.start()
+
+            }
         }
     }
 
@@ -89,8 +111,17 @@ class GameView : SurfaceView, Runnable {
                 paint.strokeWidth = s.starWidth()
                 canvas?.drawPoint(s.x, s.y, paint)
             }
-
+            for( e in enemies){
+                canvas?.drawBitmap(e.bitmap, e.x, e.y, paint)
+                //paint.color = Color.GREEN
+                //paint.style = Paint.Style.STROKE
+                //canvas?.drawRect(e.detectColosion,paint)
+            }
             canvas?.drawBitmap(player.bitmap, player.x, player.y, paint)
+            //paint.style = Paint.Style.STROKE
+            //canvas?.drawRect(player.detectColosion,paint)
+
+            canvas?.drawBitmap(boom.bitmap, boom.x, boom.y, paint)
             surfaceHolder.unlockCanvasAndPost(canvas)
         }
     }

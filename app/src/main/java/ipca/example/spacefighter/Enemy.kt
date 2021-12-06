@@ -4,58 +4,55 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
+import java.util.*
 import kotlin.math.max
 
-class Player {
+class Enemy {
 
     var bitmap : Bitmap
     var x : Float
     var y : Float
     var speed : Int = 0
 
-    var boosting = false
-
     var maxY : Float
     var minY : Float
+    var maxX : Float
+    var minX : Float
 
     var detectColosion = Rect()
 
-    companion object{
-        const val GRAVITY = 10
-        const val MAX_SPEED = 20
-        const val MIN_SPEED = 1
-    }
-
     constructor(context: Context, screenWidth: Int, screenHeight : Int){
-        x = 75f
-        y = 50f
-        speed = 1
-        bitmap = BitmapFactory
-            .decodeResource(context.resources,R.drawable.player)
-
+        maxX = screenWidth.toFloat()
+        minX = 0F
+        maxY = screenHeight.toFloat()
         minY = 0F
-        maxY = (screenHeight - bitmap.height).toFloat()
+
+        bitmap = BitmapFactory
+            .decodeResource(context.resources,R.drawable.enemy)
+
+        var generator = Random()
+        speed = generator.nextInt(6) + 10
+        y = generator.nextInt(maxY.toInt()).toFloat() - bitmap.height
+        x = maxX
+
         detectColosion = Rect(x.toInt(),y.toInt(),bitmap.width, bitmap.height)
     }
 
-    fun update(){
-        if (boosting){
-            speed += 2
-        }else{
-            speed -= 5
-        }
-        if (speed > MAX_SPEED) speed = MAX_SPEED
-        if (speed < MIN_SPEED) speed = MIN_SPEED
-
-        y -= speed - GRAVITY
-
-        if (y < minY) y = minY
-        if (y > maxY) y = maxY
+    fun update(playerSpeed:Int){
+        x -= playerSpeed
+        x -= speed
 
         detectColosion.left = x.toInt()
         detectColosion.top = y.toInt()
         detectColosion.right = x.toInt() + bitmap.width
         detectColosion.bottom = y.toInt() + bitmap.height
+
+        if (x<minX - bitmap.width){
+            var generator = Random()
+            speed = generator.nextInt(6) + 10
+            y = generator.nextInt(maxY.toInt()).toFloat() - bitmap.height
+            x = maxX
+        }
     }
 
 }

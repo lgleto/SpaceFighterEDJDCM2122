@@ -14,10 +14,13 @@ class GameView : SurfaceView, Runnable {
     var playing = false
     lateinit var gameThread : Thread
 
-    lateinit var player : Player
+
     lateinit var surfaceHolder: SurfaceHolder
     var canvas : Canvas? =  null
     lateinit var paint : Paint
+
+    lateinit var player : Player
+    var stars = arrayListOf<Star>()
 
     constructor(context: Context?,
                 screenWidth : Int,
@@ -43,6 +46,10 @@ class GameView : SurfaceView, Runnable {
         surfaceHolder = holder
         player = Player(context!!, screenWidth, screenHeight)
         paint = Paint()
+
+        for(index in 0..99){
+            stars.add(Star(screenWidth,screenHeight))
+        }
     }
 
 
@@ -67,12 +74,22 @@ class GameView : SurfaceView, Runnable {
 
     fun update(){
         player.update()
+        for( s in stars){
+            s.update(player.speed)
+        }
     }
 
     fun draw(){
         if (surfaceHolder.surface.isValid){
             canvas = surfaceHolder.lockCanvas()
             canvas?.drawColor(Color.BLACK)
+
+            paint.color = Color.YELLOW
+            for (s in stars){
+                paint.strokeWidth = s.starWidth()
+                canvas?.drawPoint(s.x, s.y, paint)
+            }
+
             canvas?.drawBitmap(player.bitmap, player.x, player.y, paint)
             surfaceHolder.unlockCanvasAndPost(canvas)
         }

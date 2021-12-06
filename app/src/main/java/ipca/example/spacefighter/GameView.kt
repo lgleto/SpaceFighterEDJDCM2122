@@ -1,7 +1,12 @@
 package ipca.example.spacefighter
 
 import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.util.AttributeSet
+import android.view.MotionEvent
+import android.view.SurfaceHolder
 import android.view.SurfaceView
 
 class GameView : SurfaceView, Runnable {
@@ -9,20 +14,37 @@ class GameView : SurfaceView, Runnable {
     var playing = false
     lateinit var gameThread : Thread
 
-    constructor(context: Context?) : super(context)
-    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
+    lateinit var player : Player
+    lateinit var surfaceHolder: SurfaceHolder
+    var canvas : Canvas? =  null
+    lateinit var paint : Paint
+
+    constructor(context: Context?,
+                screenWidth : Int,
+                screenHeight:Int) : super(context){
+        init(context,
+            screenWidth,
+            screenHeight)
+    }
+    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs){
+        init(context)
+    }
     constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(
         context,
         attrs,
         defStyleAttr
-    )
+    ){
+        init(context)
+    }
 
-    constructor(
-        context: Context?,
-        attrs: AttributeSet?,
-        defStyleAttr: Int,
-        defStyleRes: Int
-    ) : super(context, attrs, defStyleAttr, defStyleRes)
+    fun init(context: Context?,
+             screenWidth : Int = 0,
+             screenHeight: Int = 0){
+        surfaceHolder = holder
+        player = Player(context!!, screenWidth, screenHeight)
+        paint = Paint()
+    }
+
 
     override fun run() {
         while(playing){
@@ -44,14 +66,35 @@ class GameView : SurfaceView, Runnable {
     }
 
     fun update(){
-
+        player.update()
     }
 
     fun draw(){
-
+        if (surfaceHolder.surface.isValid){
+            canvas = surfaceHolder.lockCanvas()
+            canvas?.drawColor(Color.BLACK)
+            canvas?.drawBitmap(player.bitmap, player.x, player.y, paint)
+            surfaceHolder.unlockCanvasAndPost(canvas)
+        }
     }
 
     fun control(){
         Thread.sleep(17)
+    }
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        event?.let{
+            when (it.action.and(MotionEvent.ACTION_MASK)){
+                MotionEvent.ACTION_UP ->{
+                    player.boosting = false
+                }
+                MotionEvent.ACTION_DOWN ->{
+                    player.boosting = true
+                }
+            }
+        }
+
+
+        return true
     }
 }

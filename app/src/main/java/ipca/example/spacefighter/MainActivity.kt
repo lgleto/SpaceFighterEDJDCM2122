@@ -19,5 +19,9 @@ class MainActivity : AppCompatActivity() {
             val intent= Intent(this@MainActivity, GameActivity::class.java)
             startActivity(intent)
         }
+
+        binding.imageButtonHighScore.setOnClickListener {
+
+        }
     }
 }
